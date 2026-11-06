@@ -9,6 +9,8 @@ const snapshot = {
   version: '',
   available: '',
   percent: 0,
+  transferred: 0,
+  total: 0,
   error: '',
 };
 
@@ -37,6 +39,17 @@ function feedUrl() {
   return String(baked.url || '').trim().replace(/\/+$/, '');
 }
 
+function fileSize(info) {
+  const files = info && info.files || [];
+  const arch = process.arch === 'arm64' ? 'arm64' : 'x64';
+  const ext = process.platform === 'darwin' ? '.zip' : process.platform === 'win32' ? '.exe' : '.AppImage';
+  const nameOf = (file) => String((file && (file.url || file.path)) || '');
+  const match = files.find((file) => nameOf(file).includes(arch) && nameOf(file).endsWith(ext))
+    || files.find((file) => nameOf(file).endsWith(ext))
+    || files[0];
+  return Number(match && match.size) || 0;
+}
+
 function publish(patch) {
   Object.assign(snapshot, patch);
   hooks.send({ ...snapshot, feed: feedUrl() });
@@ -46,23 +59,27 @@ function wire() {
   if (wired) return;
   wired = true;
   autoUpdater.autoDownload = false;
-  autoUpdater.autoInstallOnAppQuit = true;
-  autoUpdater.on('checking-for-update', () => publish({ status: 'checking', error: '', percent: 0 }));
+  autoUpdater.autoInstallOnAppQuit = false;
+  autoUpdater.on('checking-for-update', () => publish({ status: 'checking', error: '', percent: 0, transferred: 0 }));
   autoUpdater.on('update-available', (info) => {
     const version = info && info.version || '';
-    publish({ status: 'available', available: version, error: '' });
+    publish({ status: 'available', available: version, error: '', percent: 0, transferred: 0, total: fileSize(info) });
     if (version && promptedFor !== `available:${version}`) {
       promptedFor = `available:${version}`;
       hooks.openSettings();
     }
   });
-  autoUpdater.on('update-not-available', () => publish({ status: 'none', error: '', available: '' }));
+  autoUpdater.on('update-not-available', () => publish({ status: 'none', error: '', available: '', percent: 0, transferred: 0 }));
   autoUpdater.on('download-progress', (progress) => {
-    publish({ status: 'downloading', percent: Math.round(progress && progress.percent || 0) });
+    const transferred = Number(progress && progress.transferred) || 0;
+    const total = Number(progress && progress.total) || snapshot.total || 0;
+    const percent = total ? (transferred / total) * 100 : Number(progress && progress.percent) || 0;
+    publish({ status: 'downloading', percent, transferred, total, error: '' });
   });
   autoUpdater.on('update-downloaded', (info) => {
     const version = info && info.version || snapshot.available;
-    publish({ status: 'downloaded', available: version, percent: 100, error: '' });
+    const total = snapshot.total || fileSize(info);
+    publish({ status: 'downloaded', available: version, percent: 100, transferred: total, total, error: '' });
     promptInstall(version);
   });
   autoUpdater.on('error', (error) => {
@@ -119,7 +136,9 @@ function check() {
 
 function download() {
   wire();
-  if (snapshot.status !== 'available' && snapshot.status !== 'downloading') return snapshot;
+  if (snapshot.status === 'downloading') return snapshot;
+  if (snapshot.status !== 'available') return snapshot;
+  publish({ status: 'downloading', percent: 0, transferred: 0, error: '' });
   autoUpdater.downloadUpdate().catch((error) => {
     publish({ status: 'error', error: briefUpdateError(error) });
   });

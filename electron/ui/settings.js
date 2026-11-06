@@ -92,6 +92,14 @@ const panels = {
   calendar: document.getElementById('calendar'),
   guide: document.getElementById('guide'),
 };
+const tabOrder = ['upcoming', 'tasks', 'calendar', 'guide'];
+let currentTab = 'upcoming';
+let reelToken = 0;
+let syncFollowers = () => {};
+
+function scrollRoot() {
+  return panels[currentTab] || document.querySelector('main');
+}
 
 function formatWhen(iso) {
   const date = new Date(iso);
@@ -317,7 +325,7 @@ function renderGuide() {
 }
 
 function layoutScrollbar() {
-  const main = document.querySelector('main');
+  const main = scrollRoot();
   const bar = document.getElementById('vbar');
   const thumb = document.getElementById('vbar-thumb');
   if (!main || !bar || !thumb) return;
@@ -339,6 +347,7 @@ function render() {
   renderTasks();
   renderCalendar();
   renderGuide();
+  syncFollowers(false);
   layoutScrollbar();
 }
 
@@ -350,27 +359,125 @@ async function reload() {
   render();
 }
 
+function showTab(name) {
+  if (!name || name === currentTab || !panels[name]) return;
+  const from = panels[currentTab];
+  const to = panels[name];
+  const dir = tabOrder.indexOf(name) > tabOrder.indexOf(currentTab) ? 1 : -1;
+  currentTab = name;
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const token = ++reelToken;
+  Object.values(panels).forEach((panel) => {
+    if (panel !== from && panel !== to) {
+      panel.classList.remove('is-on');
+      panel.style.transform = '';
+      panel.style.transition = '';
+      panel.style.zIndex = '';
+    }
+  });
+  if (reduce) {
+    from.classList.remove('is-on');
+    from.style.transform = '';
+    to.classList.add('is-on');
+    to.style.transform = '';
+    to.scrollTop = 0;
+    layoutScrollbar();
+    return;
+  }
+  const distance = document.querySelector('main').clientHeight || 0;
+  to.scrollTop = 0;
+  to.classList.add('is-on');
+  to.style.zIndex = '2';
+  from.style.zIndex = '1';
+  to.style.transition = 'none';
+  to.style.transform = `translate3d(0, ${dir * distance}px, 0)`;
+  to.getBoundingClientRect();
+  const motion = 'transform 0.5s cubic-bezier(0.22, 0.8, 0.2, 1)';
+  to.style.transition = motion;
+  from.style.transition = motion;
+  to.style.transform = 'translate3d(0, 0, 0)';
+  from.style.transform = `translate3d(0, ${-dir * distance}px, 0)`;
+  let settled = false;
+  const finish = (event) => {
+    if (event && event.propertyName && event.propertyName !== 'transform') return;
+    if (settled || token !== reelToken) return;
+    settled = true;
+    to.removeEventListener('transitionend', finish);
+    from.classList.remove('is-on');
+    from.style.transform = '';
+    from.style.transition = '';
+    from.style.zIndex = '';
+    to.style.transition = '';
+    to.style.zIndex = '';
+    layoutScrollbar();
+  };
+  to.addEventListener('transitionend', finish);
+  setTimeout(() => finish(), 560);
+}
+
+function bindFollower(container, selector, isSelected) {
+  const hover = container.querySelector('.follow-hover');
+  const selected = container.querySelector('.follow-selected');
+  if (!hover || !selected) return { syncSelected() {} };
+  const items = () => [...container.querySelectorAll(selector)];
+  function place(pill, item, animate) {
+    const box = container.getBoundingClientRect();
+    const rect = item.getBoundingClientRect();
+    if (!animate) pill.style.transition = 'none';
+    pill.style.width = `${rect.width}px`;
+    pill.style.height = `${rect.height}px`;
+    pill.style.transform = `translate(${rect.left - box.left}px, ${rect.top - box.top}px)`;
+    if (!animate) {
+      pill.getBoundingClientRect();
+      pill.style.transition = '';
+    }
+  }
+  function syncSelected(animate) {
+    const item = items().find(isSelected);
+    if (item) place(selected, item, animate);
+  }
+  container.addEventListener('pointermove', (event) => {
+    const item = event.target.closest(selector);
+    if (!item || !container.contains(item)) return;
+    hover.classList.add('on');
+    hover.classList.toggle('same', isSelected(item));
+    place(hover, item, true);
+  });
+  container.addEventListener('pointerleave', () => hover.classList.remove('on'));
+  return { syncSelected };
+}
+
+const navFollow = bindFollower(document.querySelector('nav'), 'button', (button) => button.classList.contains('active'));
+const langFollow = bindFollower(document.getElementById('lang-switch'), 'button', (button) => button.classList.contains('on'));
+syncFollowers = (animate) => {
+  navFollow.syncSelected(animate);
+  langFollow.syncSelected(animate);
+};
+syncFollowers(false);
+
 document.querySelectorAll('nav button').forEach((button) => {
   button.addEventListener('click', () => {
     document.querySelectorAll('nav button').forEach((item) => item.classList.toggle('active', item === button));
-    const tab = button.dataset.tab;
-    for (const [name, panel] of Object.entries(panels)) panel.hidden = name !== tab;
-    const main = document.querySelector('main');
-    if (main) main.scrollTop = 0;
-    layoutScrollbar();
+    navFollow.syncSelected(true);
+    showTab(button.dataset.tab);
   });
 });
 
 (function bindScrollbar() {
-  const main = document.querySelector('main');
   const bar = document.getElementById('vbar');
   const thumb = document.getElementById('vbar-thumb');
-  if (!main || !bar || !thumb) return;
-  main.addEventListener('scroll', layoutScrollbar, { passive: true });
-  window.addEventListener('resize', layoutScrollbar);
-  if (window.ResizeObserver) new ResizeObserver(layoutScrollbar).observe(main);
+  if (!bar || !thumb) return;
+  Object.values(panels).forEach((panel) => {
+    panel.addEventListener('scroll', layoutScrollbar, { passive: true });
+    if (window.ResizeObserver) new ResizeObserver(layoutScrollbar).observe(panel);
+  });
+  window.addEventListener('resize', () => {
+    layoutScrollbar();
+    syncFollowers(false);
+  });
   bar.addEventListener('pointerdown', (event) => {
     if (event.target === thumb) return;
+    const main = scrollRoot();
     const overflow = main.scrollHeight - main.clientHeight;
     const rect = bar.getBoundingClientRect();
     const thumbH = thumb.offsetHeight;
@@ -382,6 +489,7 @@ document.querySelectorAll('nav button').forEach((button) => {
     event.preventDefault();
     event.stopPropagation();
     bar.classList.add('drag');
+    const main = scrollRoot();
     const startY = event.clientY;
     const startTop = main.scrollTop;
     function move(next) {
@@ -408,7 +516,19 @@ document.body.addEventListener('click', async (event) => {
 
 document.getElementById('preview').addEventListener('click', () => api.preview());
 
-let updateState = { status: 'idle', version: '', available: '', percent: 0, error: '' };
+let updateState = { status: 'idle', version: '', available: '', percent: 0, transferred: 0, total: 0, error: '' };
+
+function formatMb(bytes) {
+  const mb = Math.max(0, Number(bytes) || 0) / 1048576;
+  return mb >= 10 ? mb.toFixed(1) : mb.toFixed(1);
+}
+
+function downloadText() {
+  const total = Number(updateState.total) || 0;
+  const transferred = Math.min(Number(updateState.transferred) || 0, total || Infinity);
+  if (!total) return `${Math.round(updateState.percent || 0)}%`;
+  return `${formatMb(transferred)} / ${formatMb(total)} MB`;
+}
 let updateOpen = false;
 let updateRevealed = false;
 
@@ -449,7 +569,23 @@ function paintUpdate(next) {
   if (!dock || !button) return;
   dock.classList.toggle('open', updateOpen);
   dock.classList.toggle('pending', updatePending());
-  button.textContent = updateLabel();
+  const downloading = updateState.status === 'downloading';
+  dock.classList.toggle('is-downloading', downloading);
+  const label = document.getElementById('update-label');
+  if (label) label.textContent = updateLabel();
+  const bar = document.getElementById('update-dl');
+  const fill = document.getElementById('update-dl-fill');
+  const trackText = document.getElementById('update-dl-track');
+  const fillText = document.getElementById('update-dl-fill-text');
+  if (bar && fill && trackText && fillText) {
+    const percent = Math.max(0, Math.min(100, Number(updateState.percent) || 0));
+    const caption = downloadText();
+    fill.style.width = `${percent}%`;
+    trackText.textContent = caption;
+    fillText.textContent = caption;
+    fillText.style.clipPath = `inset(0 ${100 - percent}% 0 0)`;
+    bar.hidden = !downloading;
+  }
   button.tabIndex = updateOpen ? 0 : -1;
   if (close) close.tabIndex = updateOpen ? 0 : -1;
   if (icon) icon.setAttribute('aria-label', tr('updatesTip'));
@@ -472,11 +608,13 @@ document.getElementById('update-close').addEventListener('click', () => {
 
 document.getElementById('update').addEventListener('click', async () => {
   if (!updateOpen || !api.checkForUpdates) return;
+  if (updateState.status === 'downloading') return;
   if (updateRevealed && updateState.status === 'downloaded' && api.installUpdate) {
     await api.installUpdate();
     return;
   }
   if (updateRevealed && updateState.status === 'available' && api.downloadUpdate) {
+    paintUpdate({ status: 'downloading', percent: 0, transferred: 0 });
     paintUpdate(await api.downloadUpdate());
     return;
   }
@@ -494,6 +632,8 @@ if (api.updateStatus) {
 
 document.querySelectorAll('#lang-switch button').forEach((button) => {
   button.addEventListener('click', async () => {
+    document.querySelectorAll('#lang-switch button').forEach((item) => item.classList.toggle('on', item === button));
+    langFollow.syncSelected(true);
     await api.saveSettings({ language: button.dataset.lang });
     await reload();
   });

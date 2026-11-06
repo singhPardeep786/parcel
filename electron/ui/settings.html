@@ -10,16 +10,20 @@
     <aside>
       <div class="brand">
         <strong>Parcel</strong>
-        <span>Meetings aur tasks, ek girta box.</span>
+        <span>Meetings aur tasks</span>
       </div>
       <nav>
+        <span class="follow follow-selected" aria-hidden="true"></span>
+        <span class="follow follow-hover" aria-hidden="true"></span>
         <button type="button" data-tab="upcoming" class="active">Aane wale</button>
         <button type="button" data-tab="tasks">Tasks</button>
         <button type="button" data-tab="calendar">Calendar</button>
         <button type="button" data-tab="guide">Kaise jodo</button>
       </nav>
       <div class="lang" id="lang-switch">
-        <button type="button" data-lang="hi">हिंदी</button>
+        <span class="follow follow-selected" aria-hidden="true"></span>
+        <span class="follow follow-hover" aria-hidden="true"></span>
+        <button type="button" data-lang="hi" class="on">हिंदी</button>
         <button type="button" data-lang="en">English</button>
       </div>
       <button type="button" id="preview" class="preview">Animation dekho</button>
@@ -28,7 +32,14 @@
       <span class="update-ping" aria-hidden="true"></span>
       <div class="update-grow">
         <div class="update-pop">
-          <button type="button" id="update" class="update-action">Update dekho</button>
+          <button type="button" id="update" class="update-action">
+            <span class="update-label" id="update-label">Update dekho</span>
+            <span class="dl" id="update-dl" hidden>
+              <span class="dl-fill" id="update-dl-fill"></span>
+              <span class="dl-text dl-text-track" id="update-dl-track"></span>
+              <span class="dl-text dl-text-fill" id="update-dl-fill-text"></span>
+            </span>
+          </button>
           <button type="button" id="update-close" class="update-close" aria-label="Band karo">
             <svg viewBox="0 0 16 16" aria-hidden="true">
               <path d="M4.2 4.2l7.6 7.6M11.8 4.2l-7.6 7.6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
@@ -45,10 +56,10 @@
       <span class="update-tip" id="update-tip">Updates</span>
     </div>
     <main>
-      <section id="upcoming" class="panel"></section>
-      <section id="tasks" class="panel" hidden></section>
-      <section id="calendar" class="panel" hidden></section>
-      <section id="guide" class="panel" hidden></section>
+      <section id="upcoming" class="panel is-on"></section>
+      <section id="tasks" class="panel"></section>
+      <section id="calendar" class="panel"></section>
+      <section id="guide" class="panel"></section>
     </main>
     <div class="vbar" id="vbar" aria-hidden="true"><div class="vbar-thumb" id="vbar-thumb"></div></div>
     <script src="settings.js"></script>
