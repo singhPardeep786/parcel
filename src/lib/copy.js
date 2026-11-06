@@ -209,7 +209,7 @@
       updateMissing: "No updates available",
       updateError: "Update failed: {error}",
       updateFeed: "Update server",
-      // updateFeedHint: "This link is fixed. Pushing a new build to this site's repo shows the update on its own.",
+      updateFeedHint: "This link is fixed. Pushing a new build to this site's repo shows the update on its own.",
       guide: "Attach calendar",
       guideLede: "Connect your Google Calendar to Parcel. Follow the steps from top to bottom.",
       guideCloud: "Connect a Google account",
