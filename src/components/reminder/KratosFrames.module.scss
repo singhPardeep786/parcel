@@ -1,0 +1,28 @@
+.stage {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  perspective: 900px;
+}
+
+.figure {
+  position: absolute;
+  height: var(--kratos-height);
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-start;
+  overflow: visible;
+  transform-style: preserve-3d;
+}
+
+.frame {
+  display: block;
+  height: 100%;
+  width: auto;
+  max-width: none;
+  image-rendering: auto;
+  user-select: none;
+  -webkit-user-drag: none;
+  pointer-events: none;
+}

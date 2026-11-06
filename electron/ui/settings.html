@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="eng">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Parcel</title>
+    <link rel="stylesheet" href="settings.css" />
+    <script src="../../src/lib/copy.js"></script>
+  </head>
+  <body>
+    <aside>
+      <div class="brand">
+        <strong>Parcel</strong>
+        <span>Meetings aur tasks, ek girta box.</span>
+      </div>
+      <nav>
+        <button type="button" data-tab="upcoming" class="active">Aane wale</button>
+        <button type="button" data-tab="tasks">Tasks</button>
+        <button type="button" data-tab="calendar">Calendar</button>
+        <button type="button" data-tab="guide">Kaise jodo</button>
+      </nav>
+      <div class="lang" id="lang-switch">
+        <button type="button" data-lang="hi">हिंदी</button>
+        <button type="button" data-lang="en">English</button>
+      </div>
+      <button type="button" id="preview" class="preview">Animation dekho</button>
+    </aside>
+    <div class="update-dock" id="update-dock">
+      <span class="update-ping" aria-hidden="true"></span>
+      <div class="update-grow">
+        <div class="update-pop">
+          <button type="button" id="update" class="update-action">Update dekho</button>
+          <button type="button" id="update-close" class="update-close" aria-label="Band karo">
+            <svg viewBox="0 0 16 16" aria-hidden="true">
+              <path d="M4.2 4.2l7.6 7.6M11.8 4.2l-7.6 7.6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+            </svg>
+          </button>
+        </div>
+      </div>
+      <button type="button" id="update-icon" class="update-icon" aria-label="Updates">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M19.5 12a7.5 7.5 0 1 1-2.1-5.2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+          <path d="M19.6 4.4V9h-4.6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+      </button>
+      <span class="update-tip" id="update-tip">Updates</span>
+    </div>
+    <main>
+      <section id="upcoming" class="panel"></section>
+      <section id="tasks" class="panel" hidden></section>
+      <section id="calendar" class="panel" hidden></section>
+      <section id="guide" class="panel" hidden></section>
+    </main>
+    <div class="vbar" id="vbar" aria-hidden="true"><div class="vbar-thumb" id="vbar-thumb"></div></div>
+    <script src="settings.js"></script>
+  </body>
+</html>

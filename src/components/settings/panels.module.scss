@@ -1,0 +1,93 @@
+.panel {
+  max-width: 720px;
+}
+
+.panel h1 {
+  margin: 0 0 10px;
+  font-family: var(--font-display);
+  font-size: 36px;
+  letter-spacing: 0.02em;
+}
+
+.lede {
+  margin: 0 0 24px;
+  color: var(--color-muted);
+  line-height: 1.5;
+}
+
+.list {
+  display: grid;
+  gap: 12px;
+}
+
+.item {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: center;
+  padding: 16px 18px;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 1px 0 rgba(36, 28, 22, 0.06);
+}
+
+.item strong {
+  display: block;
+  font-size: 17px;
+}
+
+.item span {
+  display: block;
+  margin-top: 4px;
+  color: var(--color-muted);
+  font-size: 13px;
+}
+
+.item em {
+  font-style: normal;
+  color: var(--color-accent);
+  font-weight: 700;
+}
+
+.form,
+.cardish {
+  display: grid;
+  gap: 14px;
+  margin-bottom: 24px;
+  padding: 18px;
+  border-radius: 16px;
+  background: #fff;
+}
+
+.form label,
+.cardish label {
+  display: grid;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--color-muted);
+}
+
+.form input,
+.cardish input {
+  padding: 12px 14px;
+  border: 1px solid var(--color-line);
+  border-radius: 12px;
+  background: var(--color-cream);
+  color: var(--color-ink);
+}
+
+.form button {
+  justify-self: start;
+  border: 0;
+  border-radius: var(--radius-pill);
+  padding: 12px 18px;
+  background: var(--color-ink);
+  color: #fff;
+  cursor: pointer;
+}
+
+.empty,
+.hint {
+  color: var(--color-muted);
+  font-size: 14px;
+}

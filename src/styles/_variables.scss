@@ -1,0 +1,35 @@
+:root {
+  --font-display: Cinzel, "Iowan Old Style", Palatino, ui-serif, serif;
+  --font-ui: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+
+  --color-ink: #241c16;
+  --color-muted: #6f6256;
+  --color-cream: #fffaf3;
+  --color-line: #efe4d4;
+  --color-accent: #e07a2f;
+  --color-gold: #e0bf6a;
+  --color-gold-deep: #a67c32;
+  --color-iron: #1a120c;
+  --color-iron-mid: #3a2a1c;
+  --color-banner-text: #f4e7c8;
+  --color-banner-soft: #d9c7a2;
+
+  --color-bg-top: #d9e4ee;
+  --color-bg-mid: #f4efe6;
+  --color-bg-bottom: #e7d3bc;
+
+  --color-side: #12100e;
+  --color-side-soft: #1c1814;
+  --color-nav: #cfc3b2;
+
+  --radius-card: 6px;
+  --radius-pill: 999px;
+  --shadow-banner: 0 24px 60px rgba(0, 0, 0, 0.45);
+
+  --kratos-height: min(26vh, 190px, 18vw);
+  --kratos-left: 2vw;
+  --ground: 14%;
+  /* last strike frame is about 2.8 heights wide; the box opens at that tip */
+  --box-left: calc(var(--kratos-left) + var(--kratos-height) * 2.7);
+  --banner-width: min(440px, calc(100vw - 72px));
+}
