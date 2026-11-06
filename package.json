@@ -23,7 +23,7 @@
   },
   "dependencies": {
     "electron-updater": "^6.8.11",
-    "next": "^15.1.6",
+    "next": "^15.5.29",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "three": "0.170.0"
