@@ -76,7 +76,7 @@ function main() {
 
 function releaseBase() {
   const version = require('../package.json').version;
-  const repo = process.env.PARCEL_UPDATES_REPO || 'singhPardeep786/parcel-updates';
+  const repo = process.env.PARCEL_UPDATES_REPO || 'singhPardeep786/parcel';
   return `https://github.com/${repo}/releases/download/v${version}`;
 }
 
