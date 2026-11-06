@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="hi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: file:; font-src 'self' file: data:; connect-src 'self' file: blob:;"
+    />
+    <title>Parcel</title>
+    <link rel="stylesheet" href="overlay.css" />
+    <script src="../../src/lib/copy.js"></script>
+  </head>
+  <body>
+    <div id="stage" aria-hidden="true">
+      <div id="shadow"></div>
+      <div id="figure">
+        <img id="frame" alt="" draggable="false" />
+      </div>
+    </div>
+    <article id="card" aria-hidden="true">
+      <p class="kicker" id="kicker">Meeting</p>
+      <h2 id="title"></h2>
+      <p id="when"></p>
+      <div class="remain">
+        <strong id="remain">—</strong>
+        <span id="remain-label">shuru hone mein</span>
+      </div>
+      <div class="actions">
+        <button type="button" id="snooze">5 min baad</button>
+        <button type="button" id="dismiss">Theek hai</button>
+      </div>
+      <p class="credit">Kratos frames · serial sprite sequence</p>
+    </article>
+    <p id="error" hidden></p>
+    <script>
+      window.addEventListener("error", (event) => {
+        const el = document.getElementById("error");
+        el.hidden = false;
+        el.textContent = String(event.message || "overlay error");
+      });
+    </script>
+    <script src="overlay.js"></script>
+  </body>
+</html>

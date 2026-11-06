@@ -1,0 +1,6 @@
+RobotExpressive.glb
+Author: Tomás Laulhé
+Modifications: Don McCurdy
+Source: https://github.com/mrdoob/three.js (examples/models/gltf/RobotExpressive)
+License: CC0 1.0 — public domain
+Clips used: Idle, Wave, Walking
