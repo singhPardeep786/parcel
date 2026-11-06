@@ -80,7 +80,7 @@ function releaseBase() {
   return `https://github.com/${repo}/releases/download/v${version}`;
 }
 
-function feedYml(name, downloadBase) {
+function feedYml(name, downloadBase) { 
   const text = fs.readFileSync(path.join(dist, name), 'utf8');
   return text.replace(/^(\s*-?\s*url:\s*)(\S+)\s*$/gm, (_line, prefix, file) => {
     if (/^https?:\/\//i.test(file)) return `${prefix}${file}`;
