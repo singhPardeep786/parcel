@@ -34,8 +34,6 @@ function briefUpdateError(error) {
 }
 
 function feedUrl() {
-  const saved = String(store.get().updateFeedUrl || '').trim();
-  if (saved) return saved.replace(/\/+$/, '');
   return String(baked.url || '').trim().replace(/\/+$/, '');
 }
 
@@ -51,7 +49,12 @@ function wire() {
   autoUpdater.autoInstallOnAppQuit = true;
   autoUpdater.on('checking-for-update', () => publish({ status: 'checking', error: '', percent: 0 }));
   autoUpdater.on('update-available', (info) => {
-    publish({ status: 'available', available: info && info.version || '', error: '' });
+    const version = info && info.version || '';
+    publish({ status: 'available', available: version, error: '' });
+    if (version && promptedFor !== `available:${version}`) {
+      promptedFor = `available:${version}`;
+      hooks.openSettings();
+    }
   });
   autoUpdater.on('update-not-available', () => publish({ status: 'none', error: '', available: '' }));
   autoUpdater.on('download-progress', (progress) => {
@@ -92,6 +95,9 @@ function check() {
   snapshot.version = app.getVersion();
   if (!app.isPackaged) {
     publish({ status: 'dev', error: '', version: snapshot.version });
+    return snapshot;
+  }
+  if (snapshot.status === 'available' || snapshot.status === 'downloading' || snapshot.status === 'downloaded') {
     return snapshot;
   }
   const url = feedUrl();

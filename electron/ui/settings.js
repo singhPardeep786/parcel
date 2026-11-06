@@ -6,7 +6,7 @@ function createMock() {
     alsoAtStart: true,
     openAtLogin: true,
     language: 'hi',
-    updateFeedUrl: '',
+    updateFeedUrl: 'https://parcel-bj9e.vercel.app/',
     version: '1.0.0',
     icsUrl: '',
     googleClientId: '',
@@ -207,7 +207,7 @@ function renderCalendar() {
         </label>
       </div>
       <label for="feed">${escapeHtml(tr('updateFeed'))}</label>
-      <input id="feed" name="feed" type="url" value="${escapeHtml(state.updateFeedUrl || '')}" placeholder="https://pardeep-nine.vercel.app/parcel-updates" />
+      <input id="feed" name="feed" type="url" value="${escapeHtml(state.updateFeedUrl || 'https://parcel-bj9e.vercel.app/')}" readonly tabindex="-1" aria-readonly="true" />
       <p class="hint">${escapeHtml(tr('updateFeedHint'))}</p>
       <label for="ics">${escapeHtml(tr('ics'))}</label>
       <textarea id="ics" name="ics" placeholder="https://calendar.google.com/calendar/ical/.../basic.ics">${escapeHtml(state.icsUrl || '')}</textarea>
@@ -248,7 +248,6 @@ function renderCalendar() {
       leadMinutes: Number(data.get('lead')),
       alsoAtStart: Boolean(data.get('atStart')),
       openAtLogin: Boolean(data.get('login')),
-      updateFeedUrl: String(data.get('feed') || ''),
       icsUrl: String(data.get('ics') || ''),
     });
     await reload();
@@ -433,8 +432,15 @@ function updatePending() {
   return status === 'available' || status === 'downloading' || status === 'downloaded';
 }
 
+let dismissedUpdate = '';
+
 function paintUpdate(next) {
   if (next) updateState = { ...updateState, ...next };
+  const pendingVersion = updateState.available || updateState.status;
+  if (updatePending() && dismissedUpdate !== pendingVersion) {
+    updateOpen = true;
+    updateRevealed = true;
+  }
   const dock = document.getElementById('update-dock');
   const button = document.getElementById('update');
   const icon = document.getElementById('update-icon');
@@ -460,6 +466,7 @@ document.getElementById('update-icon').addEventListener('click', () => {
 document.getElementById('update-close').addEventListener('click', () => {
   updateOpen = false;
   updateRevealed = false;
+  if (updatePending()) dismissedUpdate = updateState.available || updateState.status;
   paintUpdate();
 });
 

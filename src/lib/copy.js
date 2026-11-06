@@ -5,7 +5,7 @@
 })(typeof globalThis !== "undefined" ? globalThis : this, function () {
   const COPY = {
     hi: {
-      tagline: "Meetings aur tasks, ek girta box.",
+      tagline: "Meetings aur tasks",
       upcoming: "Aane wale",
       tasks: "Tasks",
       calendar: "Calendar",
@@ -67,7 +67,7 @@
       errClient: "Google Client ID chahiye. Neeche steps likhe hain.",
       errRefresh: "Refresh token nahi mila. Consent screen par dubara allow karo.",
       errOAuthTimeout: "Google sign-in ka time khatam ho gaya. Dubara try karo.",
-      nextTagline: "Meetings aur tasks, peeth wale blades ke saath.",
+      nextTagline: "Meetings aur tasks.",
       nextTasksLede: "Apna task add karo. Reminder pe Kratos frames serial chalenge.",
       title: "Title",
       time: "Time",
@@ -95,7 +95,7 @@
       updateMissing: "Koi update nahi hai",
       updateError: "Update nahi ho paya: {error}",
       updateFeed: "Update server",
-      updateFeedHint: "Is https folder mein latest.yml aur installer rakho. Naya build upload karte hi saari installed apps ko update dikhega.",
+      updateFeedHint: "Yeh link fix hai. Is site ki repo par naya build push hote hi update khud dikh jaayega.",
       guide: "Kaise jodo",
       guideLede: "Apna Google Calendar Parcel se jodo. Steps upar se neeche follow karo.",
       guideCloud: "Google account jodo",
@@ -119,7 +119,7 @@
       ],
     },
     en: {
-      tagline: "Meetings and tasks, one falling box.",
+      tagline: "Meetings and tasks",
       upcoming: "Upcoming",
       tasks: "Tasks",
       calendar: "Calendar",
@@ -181,7 +181,7 @@
       errClient: "A Google Client ID is required. The steps are below.",
       errRefresh: "No refresh token. Allow it again on the consent screen.",
       errOAuthTimeout: "Google sign-in timed out. Try again.",
-      nextTagline: "Meetings and tasks, with the blades on his back.",
+      nextTagline: "Meetings and tasks",
       nextTasksLede: "Add your own task. The reminder plays the Kratos frames.",
       title: "Title",
       time: "Time",
@@ -209,7 +209,7 @@
       updateMissing: "No updates available",
       updateError: "Update failed: {error}",
       updateFeed: "Update server",
-      updateFeedHint: "Put latest.yml and the installers in this https folder. Uploading a new build shows the update on every installed app.",
+      // updateFeedHint: "This link is fixed. Pushing a new build to this site's repo shows the update on its own.",
       guide: "Attach calendar",
       guideLede: "Connect your Google Calendar to Parcel. Follow the steps from top to bottom.",
       guideCloud: "Connect a Google account",

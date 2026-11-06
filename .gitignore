@@ -2,6 +2,11 @@ node_modules
 .next
 out
 dist
+public/*.dmg
+public/*.zip
+public/*.exe
+public/*.AppImage
+public/*.blockmap
 .DS_Store
 *.log
 .env*

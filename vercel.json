@@ -1,4 +1,12 @@
 {
   "framework": "nextjs",
-  "installCommand": "ELECTRON_SKIP_BINARY_DOWNLOAD=1 npm install"
+  "installCommand": "ELECTRON_SKIP_BINARY_DOWNLOAD=1 npm install",
+  "headers": [
+    {
+      "source": "/latest(.*).yml",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }
+      ]
+    }
+  ]
 }

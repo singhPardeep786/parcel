@@ -1,10 +1,10 @@
 {
   "name": "parcel-reminder",
   "productName": "Parcel",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "private": true,
   "description": "Reminders for tasks and Google Calendar, with the Kratos frame animation. Installs on macOS, Windows, and Linux.",
-  "homepage": "https://pardeep-nine.vercel.app",
+  "homepage": "https://parcel-bj9e.vercel.app",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -65,7 +65,7 @@
     "publish": [
       {
         "provider": "generic",
-        "url": "https://pardeep-nine.vercel.app/parcel-updates"
+        "url": "https://parcel-bj9e.vercel.app/"
       }
     ],
     "mac": {

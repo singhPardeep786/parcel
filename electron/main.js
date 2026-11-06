@@ -434,6 +434,7 @@ app.whenReady().then(() => {
     },
   });
   setTimeout(() => updates.check(), 4000);
+  setInterval(() => updates.check(), 30 * 60 * 1000);
 });
 
 app.on('activate', () => createSettings());

@@ -475,6 +475,12 @@ input:not([type="checkbox"]), select, textarea {
   color: #241c16;
 }
 
+input[readonly] {
+  background: #f6f1ea;
+  color: #5c5148;
+  cursor: default;
+}
+
 textarea { min-height: 74px; resize: vertical; }
 
 .row-actions, .split {

@@ -4,6 +4,7 @@ const { app, safeStorage } = require('electron');
 const { pruneMap } = require('./schedule');
 
 const BAKED_EMAIL = 'pardeep.singh@grapesworldwide.com';
+const BAKED_FEED = String(require('./feed.json').url || '').trim();
 
 const DEFAULTS = {
   email: '',
@@ -76,7 +77,12 @@ function load() {
   } catch {
     cache = { ...DEFAULTS };
   }
-  if (scrubBakedIdentity(cache)) save();
+  let changed = scrubBakedIdentity(cache);
+  if (cache.updateFeedUrl) {
+    cache.updateFeedUrl = '';
+    changed = true;
+  }
+  if (changed) save();
   return cache;
 }
 
@@ -102,7 +108,7 @@ function publicState() {
     alsoAtStart: data.alsoAtStart,
     openAtLogin: data.openAtLogin,
     language: data.language === 'en' ? 'en' : 'hi',
-    updateFeedUrl: data.updateFeedUrl || '',
+    updateFeedUrl: BAKED_FEED,
     version: '',
     icsUrl: open(data.icsUrl),
     googleClientId: data.googleClientId,
@@ -129,7 +135,6 @@ function updateSettings(patch) {
   if (typeof patch.alsoAtStart === 'boolean') data.alsoAtStart = patch.alsoAtStart;
   if (typeof patch.openAtLogin === 'boolean') data.openAtLogin = patch.openAtLogin;
   if (patch.language === 'en' || patch.language === 'hi') data.language = patch.language;
-  if (typeof patch.updateFeedUrl === 'string') data.updateFeedUrl = patch.updateFeedUrl.trim();
   if (typeof patch.icsUrl === 'string') data.icsUrl = seal(patch.icsUrl.trim());
   if (typeof patch.googleClientId === 'string') data.googleClientId = patch.googleClientId.trim();
   if (typeof patch.googleClientSecret === 'string' && patch.googleClientSecret.trim()) {
