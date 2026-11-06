@@ -1,17 +1,17 @@
-version: 1.0.1
+version: 1.0.2
 files:
-  - url: https://github.com/singhPardeep786/parcel/releases/download/v1.0.1/Parcel-1.0.1-x64.zip
-    sha512: wPXqeBTXe1IdP9eoqreJT4UPEGr1EwW1cK651RViLDVTLMD5WTOV4EpIq5xM8S8RbiJJSSxhFC+cYpY7fpq6oQ==
-    size: 195297889
-  - url: https://github.com/singhPardeep786/parcel/releases/download/v1.0.1/Parcel-1.0.1-arm64.zip
-    sha512: ulKHmWGLEFTchRK2I+y9z52dlzq2EG4dijD4JovnpVAvaF12G46xoPS5pR5d4/F2jLgqpx4ymAAucql3clfddw==
-    size: 190670696
-  - url: https://github.com/singhPardeep786/parcel/releases/download/v1.0.1/Parcel-1.0.1-x64.dmg
-    sha512: R5e9tIgHvspBxKvjxXGW1ae95TsgLT2WVEN4s6QWu8mCv4L0MTWGRiAvUGcC4WPvU7MMLCzvms53XwCXGTl4cw==
-    size: 202062718
-  - url: https://github.com/singhPardeep786/parcel/releases/download/v1.0.1/Parcel-1.0.1-arm64.dmg
-    sha512: zG1bjgbCYse22qXprlLc/dKL/RDgttwU4hqHgOuSvIyQSjEyvm5Es90MIObk8x2k9YmInly9D8VeX6Ri1hOHVQ==
-    size: 197468209
-path: Parcel-1.0.1-x64.zip
-sha512: wPXqeBTXe1IdP9eoqreJT4UPEGr1EwW1cK651RViLDVTLMD5WTOV4EpIq5xM8S8RbiJJSSxhFC+cYpY7fpq6oQ==
-releaseDate: '2026-11-06T16:54:09.731Z'
+  - url: https://github.com/singhPardeep786/parcel/releases/download/v1.0.2/Parcel-1.0.2-x64.zip
+    sha512: +/BpzH/kGDysXTvkSte64DoNtG9ea5epnx1yk4kcqKYaHlJteXELOqdqNDHDiLlqdZOR6vJElhqGeSbbfZJasA==
+    size: 195297908
+  - url: https://github.com/singhPardeep786/parcel/releases/download/v1.0.2/Parcel-1.0.2-arm64.zip
+    sha512: 1DzDZ+tDXO8y+sfsErVaNT1qZDjs7ghF2H0zvRWeI0qvHTuvLb3ym8Q+OqRPBJrkK+ObhgU2RKX5VNuDQPGkkg==
+    size: 190670715
+  - url: https://github.com/singhPardeep786/parcel/releases/download/v1.0.2/Parcel-1.0.2-x64.dmg
+    sha512: f5XRMcTNot75NBnqMrQJGFKBIxcQAD+nh/miWmOE/frxo9cznWcHPmqA7au2GF9XnqIRpFViZS5ER50lxLcAbg==
+    size: 202072007
+  - url: https://github.com/singhPardeep786/parcel/releases/download/v1.0.2/Parcel-1.0.2-arm64.dmg
+    sha512: aXM5R/u16CcBfhBEP0yWhDR6hTpNEJRqljdNLebQy5o9FnovgKltePg6vwg+hA5BCQo7LmlUYX+g5O6DZsKHgg==
+    size: 197469600
+path: Parcel-1.0.2-x64.zip
+sha512: +/BpzH/kGDysXTvkSte64DoNtG9ea5epnx1yk4kcqKYaHlJteXELOqdqNDHDiLlqdZOR6vJElhqGeSbbfZJasA==
+releaseDate: '2026-11-06T17:20:18.284Z'
