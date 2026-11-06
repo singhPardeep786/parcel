@@ -387,10 +387,9 @@ function trayImage() {
 function applyLoginItem() {
   if (!app.isPackaged) return;
   try {
-    app.setLoginItemSettings({
-      openAtLogin: Boolean(store.get().openAtLogin),
-      path: process.execPath,
-    });
+    const settings = { openAtLogin: Boolean(store.get().openAtLogin) };
+    if (PLATFORM === 'win32') settings.path = process.execPath;
+    app.setLoginItemSettings(settings);
   } catch (error) {
     trace(`login-item ${error && error.message}`);
   }
