@@ -1,4 +1,3 @@
-const { execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
@@ -77,14 +76,7 @@ function main() {
 
 function releaseBase() {
   const version = require('../package.json').version;
-  let remote = 'https://github.com/singhPardeep786/parcel.git';
-  try {
-    remote = execSync('git remote get-url origin', { encoding: 'utf8' }).trim();
-  } catch {
-    // keep the fallback remote
-  }
-  const match = remote.match(/github\.com[:/]([^/]+)\/([^/.]+)/);
-  const repo = match ? `${match[1]}/${match[2]}` : 'singhPardeep786/parcel';
+  const repo = process.env.PARCEL_UPDATES_REPO || 'singhPardeep786/parcel-updates';
   return `https://github.com/${repo}/releases/download/v${version}`;
 }
 

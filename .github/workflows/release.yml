@@ -1,0 +1,109 @@
+name: Release update
+
+on:
+  push:
+    branches: [main]
+
+concurrency:
+  group: parcel-release
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    if: ${{ github.actor != 'github-actions[bot]' }}
+    name: Build ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-latest
+            script: dist:mac
+          - os: windows-latest
+            script: dist:win
+          - os: ubuntu-latest
+            script: dist:linux
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Next version
+        shell: bash
+        run: npm version patch --no-git-tag-version
+      - name: Allow an unsigned Windows build when no certificate is stored
+        if: matrix.script == 'dist:win'
+        shell: bash
+        env:
+          WIN_CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
+        run: |
+          if [ -z "$WIN_CSC_LINK" ]; then
+            node -e "const fs=require('fs'); const p=require('./package.json'); p.build.win.forceCodeSigning=false; fs.writeFileSync('package.json', JSON.stringify(p, null, 2) + '\n');"
+          fi
+      - name: Build installers
+        shell: bash
+        env:
+          WIN_CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
+          WIN_CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
+        run: npm run ${{ matrix.script }}
+      - name: Collect release files
+        shell: bash
+        run: |
+          mkdir -p release
+          find dist -maxdepth 1 -type f \( -name 'latest*.yml' -o -name '*.dmg' -o -name '*.zip' -o -name '*.exe' -o -name '*.AppImage' -o -name '*.blockmap' \) -exec cp {} release/ \;
+          find release -type f -print
+      - uses: actions/upload-artifact@v4
+        with:
+          name: parcel-${{ matrix.os }}
+          path: release/
+          retention-days: 1
+          if-no-files-found: error
+
+  publish:
+    name: Publish update
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Next version
+        run: npm version patch --no-git-tag-version
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: parcel-*
+          path: dist
+          merge-multiple: true
+      - name: Write the public feed
+        env:
+          PARCEL_UPDATES_REPO: singhPardeep786/parcel-updates
+        run: node scripts/stage-update.js
+      - name: Upload installers
+        env:
+          GH_TOKEN: ${{ secrets.UPDATES_TOKEN }}
+        run: |
+          version="$(node -p "require('./package.json').version")"
+          gh release create "v${version}" dist/updates/* \
+            --repo singhPardeep786/parcel-updates \
+            --title "Parcel ${version}" \
+            --notes "Parcel ${version}" \
+            --target main
+      - name: Publish the feed
+        run: |
+          version="$(node -p "require('./package.json').version")"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package.json package-lock.json public/latest-mac.yml public/latest.yml public/latest-linux.yml public/latest-linux-arm64.yml
+          git commit -m "Release Parcel ${version} [skip ci]"
+          git pull --rebase origin main
+          git push origin HEAD:main
