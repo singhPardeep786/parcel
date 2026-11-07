@@ -46,6 +46,8 @@ function createMock() {
     updateStatus: async () => ({ status: 'dev', version: '1.0.0', available: '', percent: 0, error: '' }),
     checkForUpdates: async () => ({ status: 'dev', version: '1.0.0' }),
     downloadUpdate: async () => ({ status: 'dev' }),
+    pauseUpdate: async () => ({ status: 'dev' }),
+    resumeUpdate: async () => ({ status: 'dev' }),
     installUpdate: async () => {},
     onUpdateStatus: () => () => {},
     syncNow: async () => state,
@@ -353,6 +355,7 @@ function render() {
 
 async function reload() {
   state = await api.getState();
+  if (state && state.version) updateState = { ...updateState, version: state.version };
   if (state.googleConnected) {
     try { calendars = await api.listCalendars(); } catch { calendars = []; }
   } else calendars = [];
@@ -516,31 +519,58 @@ document.body.addEventListener('click', async (event) => {
 
 document.getElementById('preview').addEventListener('click', () => api.preview());
 
-let updateState = { status: 'idle', version: '', available: '', percent: 0, transferred: 0, total: 0, error: '' };
+let updateState = { status: 'idle', version: '', available: '', percent: 0, transferred: 0, total: 0, bytesPerSecond: 0, error: '' };
 
 function formatMb(bytes) {
   const mb = Math.max(0, Number(bytes) || 0) / 1048576;
-  return mb >= 10 ? mb.toFixed(1) : mb.toFixed(1);
+  return mb.toFixed(1);
+}
+
+function formatSpeed(bytesPerSecond) {
+  const speed = Math.max(0, Number(bytesPerSecond) || 0);
+  if (speed < 1024) return `${Math.round(speed)} B/s`;
+  if (speed < 1048576) return `${(speed / 1024).toFixed(0)} KB/s`;
+  return `${(speed / 1048576).toFixed(1)} MB/s`;
 }
 
 function downloadText() {
   const total = Number(updateState.total) || 0;
   const transferred = Math.min(Number(updateState.transferred) || 0, total || Infinity);
-  if (!total) return `${Math.round(updateState.percent || 0)}%`;
+  const percent = Number(updateState.percent) || 0;
+  if (updateState.status === 'paused') return tr('updatePaused');
+  if (total && transferred >= total * 0.995) return tr('updateFinishing');
+  if (!total && percent >= 99) return tr('updateFinishing');
+  if (!total) return `${Math.round(percent)}%`;
   return `${formatMb(transferred)} / ${formatMb(total)} MB`;
 }
+
+function downloadSpeedText() {
+  if (updateState.status === 'paused') return '0 B/s';
+  const total = Number(updateState.total) || 0;
+  const transferred = Number(updateState.transferred) || 0;
+  if (total && transferred >= total * 0.995) return '';
+  return formatSpeed(updateState.bytesPerSecond);
+}
+
 let updateOpen = false;
 let updateRevealed = false;
 
 function updateLabel() {
   const status = updateState.status;
   if (!updateRevealed) return tr('checkUpdate');
-  if (status === 'available') return tr('downloadUpdate');
+  if (status === 'available') {
+    const version = updateState.available || '';
+    const size = Number(updateState.total) || 0;
+    if (version && size) return tr('downloadUpdateSized', { version, size: formatMb(size) });
+    if (version) return tr('updateAvailable', { version });
+    return tr('downloadUpdate');
+  }
   if (status === 'downloaded') return tr('installUpdate');
   if (status === 'checking') return tr('updateChecking');
   if (status === 'downloading') return tr('updateDownloading', { percent: updateState.percent || 0 });
+  if (status === 'paused') return tr('updatePaused');
   if (status === 'none' || status === 'dev' || status === 'idle' || (status === 'error' && updateState.error === 'missing')) {
-    return tr('updateNoneShort');
+    return updateState.version ? tr('updateNone', { version: updateState.version }) : tr('updateNoneShort');
   }
   if (status === 'no-feed') return tr('updateNoFeed');
   if (status === 'error') return tr('updateError', { error: updateState.error || '' });
@@ -549,7 +579,7 @@ function updateLabel() {
 
 function updatePending() {
   const status = updateState.status;
-  return status === 'available' || status === 'downloading' || status === 'downloaded';
+  return status === 'available' || status === 'downloading' || status === 'paused' || status === 'downloaded';
 }
 
 let dismissedUpdate = '';
@@ -569,22 +599,29 @@ function paintUpdate(next) {
   if (!dock || !button) return;
   dock.classList.toggle('open', updateOpen);
   dock.classList.toggle('pending', updatePending());
-  const downloading = updateState.status === 'downloading';
-  dock.classList.toggle('is-downloading', downloading);
+  const active = updateState.status === 'downloading' || updateState.status === 'paused';
+  dock.classList.toggle('is-downloading', active);
+  dock.classList.toggle('is-paused', updateState.status === 'paused');
   const label = document.getElementById('update-label');
   if (label) label.textContent = updateLabel();
+  const versionEl = document.getElementById('update-version');
+  if (versionEl) {
+    const current = updateState.version || (state && state.version) || '';
+    versionEl.textContent = current ? `v${current}` : '';
+  }
   const bar = document.getElementById('update-dl');
   const fill = document.getElementById('update-dl-fill');
-  const trackText = document.getElementById('update-dl-track');
-  const fillText = document.getElementById('update-dl-fill-text');
-  if (bar && fill && trackText && fillText) {
+  const size = document.getElementById('update-dl-size');
+  const speed = document.getElementById('update-dl-speed');
+  const toggle = document.getElementById('update-dl-toggle');
+  if (bar && fill && size && speed && toggle) {
     const percent = Math.max(0, Math.min(100, Number(updateState.percent) || 0));
-    const caption = downloadText();
     fill.style.width = `${percent}%`;
-    trackText.textContent = caption;
-    fillText.textContent = caption;
-    fillText.style.clipPath = `inset(0 ${100 - percent}% 0 0)`;
-    bar.hidden = !downloading;
+    size.textContent = downloadText();
+    speed.textContent = downloadSpeedText();
+    toggle.classList.toggle('is-paused', updateState.status === 'paused');
+    toggle.setAttribute('aria-label', updateState.status === 'paused' ? tr('updateResume') : tr('updatePause'));
+    bar.hidden = !active;
   }
   button.tabIndex = updateOpen ? 0 : -1;
   if (close) close.tabIndex = updateOpen ? 0 : -1;
@@ -606,15 +643,27 @@ document.getElementById('update-close').addEventListener('click', () => {
   paintUpdate();
 });
 
+document.getElementById('update-dl-toggle').addEventListener('click', async (event) => {
+  event.preventDefault();
+  event.stopPropagation();
+  if (updateState.status === 'downloading' && api.pauseUpdate) {
+    paintUpdate(await api.pauseUpdate());
+    return;
+  }
+  if (updateState.status === 'paused' && api.resumeUpdate) {
+    paintUpdate(await api.resumeUpdate());
+  }
+});
+
 document.getElementById('update').addEventListener('click', async () => {
   if (!updateOpen || !api.checkForUpdates) return;
-  if (updateState.status === 'downloading') return;
+  if (updateState.status === 'downloading' || updateState.status === 'paused') return;
   if (updateRevealed && updateState.status === 'downloaded' && api.installUpdate) {
     await api.installUpdate();
     return;
   }
   if (updateRevealed && updateState.status === 'available' && api.downloadUpdate) {
-    paintUpdate({ status: 'downloading', percent: 0, transferred: 0 });
+    paintUpdate({ status: 'downloading', percent: 0, transferred: 0, bytesPerSecond: 0 });
     paintUpdate(await api.downloadUpdate());
     return;
   }

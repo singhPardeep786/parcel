@@ -17,10 +17,11 @@
     "icon": "node scripts/make-icon.js",
     "test": "node --test electron/ics.test.js electron/schedule.test.js",
     "dist": "npm run icon && CSC_IDENTITY_AUTO_DISCOVERY=false electron-builder --mac dir",
-    "dist:mac": "npm run icon && CSC_IDENTITY_AUTO_DISCOVERY=false electron-builder --mac dmg zip --x64 --arm64",
+    "dist:mac": "npm run icon && CSC_IDENTITY_AUTO_DISCOVERY=false electron-builder --mac dmg zip --x64 --arm64 && npm run dist:clean-apps",
     "dist:win": "npm run icon && electron-builder --win nsis --x64 --arm64",
     "dist:linux": "npm run icon && electron-builder --linux AppImage --x64 --arm64",
-    "dist:all": "npm run icon && CSC_IDENTITY_AUTO_DISCOVERY=false electron-builder --mac dmg zip --win nsis --linux AppImage --x64 --arm64",
+    "dist:all": "npm run icon && CSC_IDENTITY_AUTO_DISCOVERY=false electron-builder --mac dmg zip --win nsis --linux AppImage --x64 --arm64 && npm run dist:clean-apps",
+    "dist:clean-apps": "rm -rf dist/mac dist/mac-arm64 && mkdir -p dist && touch dist/.metadata_never_index",
     "stage:update": "node scripts/stage-update.js",
     "release": "npm run dist:all && npm run stage:update"
   },

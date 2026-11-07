@@ -34,12 +34,24 @@
         <div class="update-pop">
           <button type="button" id="update" class="update-action">
             <span class="update-label" id="update-label">Update dekho</span>
-            <span class="dl" id="update-dl" hidden>
-              <span class="dl-fill" id="update-dl-fill"></span>
-              <span class="dl-text dl-text-track" id="update-dl-track"></span>
-              <span class="dl-text dl-text-fill" id="update-dl-fill-text"></span>
-            </span>
           </button>
+          <div class="dl" id="update-dl" hidden>
+            <div class="dl-meta">
+              <button type="button" class="dl-toggle" id="update-dl-toggle" aria-label="Pause">
+                <svg class="dl-icon-pause" viewBox="0 0 16 16" aria-hidden="true">
+                  <path d="M5 3.5h2.2v9H5zm3.8 0H11v9H8.8z" fill="currentColor" />
+                </svg>
+                <svg class="dl-icon-play" viewBox="0 0 16 16" aria-hidden="true">
+                  <path d="M5.2 3.1v9.8L13 8z" fill="currentColor" />
+                </svg>
+              </button>
+              <span class="dl-size" id="update-dl-size"></span>
+              <span class="dl-speed" id="update-dl-speed"></span>
+            </div>
+            <div class="dl-track">
+              <span class="dl-fill" id="update-dl-fill"></span>
+            </div>
+          </div>
           <button type="button" id="update-close" class="update-close" aria-label="Band karo">
             <svg viewBox="0 0 16 16" aria-hidden="true">
               <path d="M4.2 4.2l7.6 7.6M11.8 4.2l-7.6 7.6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
@@ -53,7 +65,10 @@
           <path d="M19.6 4.4V9h-4.6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
         </svg>
       </button>
-      <span class="update-tip" id="update-tip">Updates</span>
+      <span class="update-meta">
+        <span class="update-version" id="update-version">v1.0.3</span>
+        <span class="update-tip" id="update-tip">Updates</span>
+      </span>
     </div>
     <main>
       <section id="upcoming" class="panel is-on"></section>

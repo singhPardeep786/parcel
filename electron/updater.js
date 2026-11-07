@@ -1,5 +1,5 @@
 const { app, dialog } = require('electron');
-const { autoUpdater } = require('electron-updater');
+const { autoUpdater, CancellationToken } = require('electron-updater');
 const store = require('./store');
 const { t } = require('../src/lib/copy');
 const baked = require('./feed.json');
@@ -11,6 +11,7 @@ const snapshot = {
   percent: 0,
   transferred: 0,
   total: 0,
+  bytesPerSecond: 0,
   error: '',
 };
 
@@ -22,6 +23,7 @@ let hooks = {
 };
 let wired = false;
 let promptedFor = '';
+let downloadToken = null;
 
 function lang() {
   return store.get().language === 'en' ? 'en' : 'hi';
@@ -35,19 +37,47 @@ function briefUpdateError(error) {
   return line.replace(/\s*Headers:[\s\S]*$/i, '').replace(/^HttpError:\s*/i, '').slice(0, 160);
 }
 
+function isCancel(error) {
+  const name = String((error && (error.name || error.code)) || '');
+  return name === 'CancellationError' || /cancelled/i.test(String((error && error.message) || error || ''));
+}
+
 function feedUrl() {
   return String(baked.url || '').trim().replace(/\/+$/, '');
 }
 
+function fileName(file) {
+  const raw = String((file && (file.url || file.path || file.name)) || '');
+  try {
+    return decodeURIComponent(raw.split('/').pop().split('?')[0] || '');
+  } catch {
+    return raw;
+  }
+}
+
 function fileSize(info) {
-  const files = info && info.files || [];
+  const files = Array.isArray(info && info.files) ? info.files : [];
+  if (!files.length) return Number(info && info.size) || 0;
   const arch = process.arch === 'arm64' ? 'arm64' : 'x64';
-  const ext = process.platform === 'darwin' ? '.zip' : process.platform === 'win32' ? '.exe' : '.AppImage';
-  const nameOf = (file) => String((file && (file.url || file.path)) || '');
-  const match = files.find((file) => nameOf(file).includes(arch) && nameOf(file).endsWith(ext))
-    || files.find((file) => nameOf(file).endsWith(ext))
-    || files[0];
-  return Number(match && match.size) || 0;
+  const ranked = files.map((file) => {
+    const name = fileName(file).toLowerCase();
+    const size = Number(file && file.size) || 0;
+    let score = -1;
+    if (process.platform === 'darwin') {
+      if (name.includes(`-${arch}.zip`)) score = 4;
+      else if (name.endsWith('.zip') && !/-x64\.zip$/.test(name) && !/-arm64\.zip$/.test(name)) score = 1;
+    } else if (process.platform === 'win32') {
+      if (name.includes(`-${arch}.exe`)) score = 4;
+      // Skip fat/universal installers that bundle every arch.
+      else if (name.endsWith('.exe') && !/-x64\.exe$/.test(name) && !/-arm64\.exe$/.test(name) && !/-ia32\.exe$/.test(name)) score = 0;
+    } else if (arch === 'arm64') {
+      if (name.includes('arm64') && name.endsWith('.appimage')) score = 4;
+    } else if ((name.includes('x86_64') || name.includes('-x64')) && name.endsWith('.appimage')) {
+      score = 4;
+    }
+    return { size, score };
+  }).filter((row) => row.score > 0).sort((a, b) => b.score - a.score);
+  return ranked.length ? ranked[0].size : 0;
 }
 
 function publish(patch) {
@@ -60,30 +90,46 @@ function wire() {
   wired = true;
   autoUpdater.autoDownload = false;
   autoUpdater.autoInstallOnAppQuit = false;
-  autoUpdater.on('checking-for-update', () => publish({ status: 'checking', error: '', percent: 0, transferred: 0 }));
+  autoUpdater.on('checking-for-update', () => publish({ status: 'checking', error: '', percent: 0, transferred: 0, bytesPerSecond: 0 }));
   autoUpdater.on('update-available', (info) => {
     const version = info && info.version || '';
-    publish({ status: 'available', available: version, error: '', percent: 0, transferred: 0, total: fileSize(info) });
+    publish({
+      status: 'available',
+      available: version,
+      version: app.getVersion(),
+      error: '',
+      percent: 0,
+      transferred: 0,
+      total: fileSize(info),
+      bytesPerSecond: 0,
+    });
     if (version && promptedFor !== `available:${version}`) {
       promptedFor = `available:${version}`;
       hooks.openSettings();
     }
   });
-  autoUpdater.on('update-not-available', () => publish({ status: 'none', error: '', available: '', percent: 0, transferred: 0 }));
+  autoUpdater.on('update-not-available', () => publish({ status: 'none', error: '', available: '', percent: 0, transferred: 0, bytesPerSecond: 0 }));
   autoUpdater.on('download-progress', (progress) => {
+    if (snapshot.status === 'paused') return;
     const transferred = Number(progress && progress.transferred) || 0;
-    const total = Number(progress && progress.total) || snapshot.total || 0;
+    // Prefer the live download Content-Length so the bar matches the file actually being fetched.
+    const liveTotal = Number(progress && progress.total) || 0;
+    const total = liveTotal > 0 ? liveTotal : snapshot.total || 0;
     const percent = total ? (transferred / total) * 100 : Number(progress && progress.percent) || 0;
-    publish({ status: 'downloading', percent, transferred, total, error: '' });
+    const bytesPerSecond = Number(progress && progress.bytesPerSecond) || 0;
+    publish({ status: 'downloading', percent, transferred, total, bytesPerSecond, error: '' });
   });
   autoUpdater.on('update-downloaded', (info) => {
+    downloadToken = null;
     const version = info && info.version || snapshot.available;
     const total = snapshot.total || fileSize(info);
-    publish({ status: 'downloaded', available: version, percent: 100, transferred: total, total, error: '' });
+    publish({ status: 'downloaded', available: version, percent: 100, transferred: total, total, bytesPerSecond: 0, error: '' });
     promptInstall(version);
   });
   autoUpdater.on('error', (error) => {
-    publish({ status: 'error', error: briefUpdateError(error) });
+    if (isCancel(error) || snapshot.status === 'paused') return;
+    downloadToken = null;
+    publish({ status: 'error', error: briefUpdateError(error), bytesPerSecond: 0 });
   });
 }
 
@@ -114,7 +160,7 @@ function check() {
     publish({ status: 'dev', error: '', version: snapshot.version });
     return snapshot;
   }
-  if (snapshot.status === 'available' || snapshot.status === 'downloading' || snapshot.status === 'downloaded') {
+  if (snapshot.status === 'available' || snapshot.status === 'downloading' || snapshot.status === 'paused' || snapshot.status === 'downloaded') {
     return snapshot;
   }
   const url = feedUrl();
@@ -137,12 +183,30 @@ function check() {
 function download() {
   wire();
   if (snapshot.status === 'downloading') return snapshot;
-  if (snapshot.status !== 'available') return snapshot;
-  publish({ status: 'downloading', percent: 0, transferred: 0, error: '' });
-  autoUpdater.downloadUpdate().catch((error) => {
-    publish({ status: 'error', error: briefUpdateError(error) });
+  if (snapshot.status !== 'available' && snapshot.status !== 'paused') return snapshot;
+  downloadToken = new CancellationToken();
+  publish({ status: 'downloading', error: '', bytesPerSecond: 0 });
+  autoUpdater.downloadUpdate(downloadToken).catch((error) => {
+    if (isCancel(error) || snapshot.status === 'paused') {
+      publish({ status: 'paused', bytesPerSecond: 0, error: '' });
+      return;
+    }
+    publish({ status: 'error', error: briefUpdateError(error), bytesPerSecond: 0 });
   });
   return snapshot;
+}
+
+function pause() {
+  if (snapshot.status !== 'downloading') return snapshot;
+  publish({ status: 'paused', bytesPerSecond: 0, error: '' });
+  if (downloadToken) downloadToken.cancel();
+  downloadToken = null;
+  return snapshot;
+}
+
+function resume() {
+  if (snapshot.status !== 'paused') return snapshot;
+  return download();
 }
 
 function install() {
@@ -163,4 +227,4 @@ function status() {
   return { ...snapshot, feed: feedUrl() };
 }
 
-module.exports = { start, check, download, install, status, feedUrl };
+module.exports = { start, check, download, pause, resume, install, status, feedUrl };

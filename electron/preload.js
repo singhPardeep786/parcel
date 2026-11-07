@@ -10,6 +10,8 @@ contextBridge.exposeInMainWorld('parcel', {
   updateStatus: () => ipcRenderer.invoke('update-status'),
   checkForUpdates: () => ipcRenderer.invoke('check-for-updates'),
   downloadUpdate: () => ipcRenderer.invoke('download-update'),
+  pauseUpdate: () => ipcRenderer.invoke('pause-update'),
+  resumeUpdate: () => ipcRenderer.invoke('resume-update'),
   installUpdate: () => ipcRenderer.invoke('install-update'),
   onUpdateStatus: (callback) => {
     const listener = (_event, payload) => callback(payload);
