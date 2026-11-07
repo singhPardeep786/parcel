@@ -33,11 +33,7 @@ body {
   font-family: var(--font-ui);
 }
 
-body.demo {
-  background:
-    radial-gradient(ellipse at 30% 80%, rgba(255, 214, 170, 0.45), transparent 42%),
-    linear-gradient(180deg, #d9e4ee 0%, #f4efe6 48%, #e7d3bc 100%);
-}
+/* Keep the overlay fully transparent — same as the website ReminderOverlay. */
 
 #stage {
   position: fixed;
@@ -84,6 +80,7 @@ body.demo {
 #card {
   position: fixed;
   z-index: 2;
+  /* opens from the crate after the strike, same as the website banner */
   left: min(var(--box-left), calc(100vw - var(--banner-width) - 16px));
   bottom: calc(var(--ground) + 12px);
   width: var(--banner-width);
@@ -96,15 +93,15 @@ body.demo {
   border: 2px solid var(--color-gold);
   border-radius: 6px;
   box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
-  transform: scaleY(0.04);
-  transform-origin: left bottom;
+  transform: scale(0.05);
+  transform-origin: 20% 100%;
   opacity: 0;
   pointer-events: none;
 }
 
 #card.show {
   opacity: 1;
-  transform: scaleY(1);
+  transform: scale(1);
   pointer-events: auto;
   transition:
     transform 0.55s cubic-bezier(0.16, 0.84, 0.32, 1),
@@ -113,7 +110,7 @@ body.demo {
 
 #card.shut {
   opacity: 0;
-  transform: scaleY(0.04);
+  transform: scale(0.05);
   pointer-events: none;
   transition:
     transform 0.55s cubic-bezier(0.16, 0.84, 0.32, 1),

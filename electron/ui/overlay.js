@@ -202,7 +202,8 @@ function advance(dt) {
   phase = next;
   if (phase === "hold") {
     clearTimeout(bannerTimer);
-    bannerTimer = setTimeout(openBanner, 320);
+    // Let the crate shatter first, then the task card grows out of it (website = 800ms).
+    bannerTimer = setTimeout(openBanner, 800);
   }
   if (phase === "done") finishExit();
 }
