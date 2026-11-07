@@ -41,7 +41,7 @@
   },
   "main": "electron/main.js",
   "build": {
-    "appId": "com.grapesworldwide.parcel",
+    "appId": "com.parcel.app",
     "productName": "Parcel",
     "asar": true,
     "directories": {

@@ -1,5 +1,9 @@
 const { app, dialog } = require('electron');
 const { autoUpdater, CancellationToken } = require('electron-updater');
+const { spawn } = require('child_process');
+const fs = require('fs');
+const os = require('os');
+const path = require('path');
 const store = require('./store');
 const { t } = require('../src/lib/copy');
 const baked = require('./feed.json');
@@ -24,6 +28,7 @@ let hooks = {
 let wired = false;
 let promptedFor = '';
 let downloadToken = null;
+let downloadedFile = '';
 
 function lang() {
   return store.get().language === 'en' ? 'en' : 'hi';
@@ -121,6 +126,7 @@ function wire() {
   });
   autoUpdater.on('update-downloaded', (info) => {
     downloadToken = null;
+    downloadedFile = String((info && info.downloadedFile) || '') || findDownloadedZip();
     const version = info && info.version || snapshot.available;
     const total = snapshot.total || fileSize(info);
     publish({ status: 'downloaded', available: version, percent: 100, transferred: total, total, bytesPerSecond: 0, error: '' });
@@ -131,6 +137,53 @@ function wire() {
     downloadToken = null;
     publish({ status: 'error', error: briefUpdateError(error), bytesPerSecond: 0 });
   });
+}
+
+function findDownloadedZip() {
+  if (downloadedFile && fs.existsSync(downloadedFile)) return downloadedFile;
+  const pending = path.join(app.getPath('cache'), 'parcel-reminder-updater', 'pending');
+  if (!fs.existsSync(pending)) return '';
+  const zip = fs.readdirSync(pending)
+    .filter((name) => name.toLowerCase().endsWith('.zip'))
+    .map((name) => path.join(pending, name))
+    .sort((a, b) => fs.statSync(b).mtimeMs - fs.statSync(a).mtimeMs)[0];
+  return zip || '';
+}
+
+function installMacUnsigned() {
+  const zip = findDownloadedZip();
+  if (!zip) {
+    publish({ status: 'error', error: 'Update file missing', bytesPerSecond: 0 });
+    return;
+  }
+  const appPath = app.getPath('exe').includes('.app/')
+    ? app.getPath('exe').replace(/\/Contents\/MacOS\/[^/]+$/, '')
+    : '/Applications/Parcel.app';
+  const script = path.join(os.tmpdir(), `parcel-install-${Date.now()}.sh`);
+  const body = `#!/bin/bash
+set -euo pipefail
+ZIP=${JSON.stringify(zip)}
+APP=${JSON.stringify(appPath)}
+TMP="$(mktemp -d /tmp/parcel-update.XXXXXX)"
+cleanup() { rm -rf "$TMP"; }
+trap cleanup EXIT
+while pgrep -f "/Contents/MacOS/Parcel" >/dev/null 2>&1; do sleep 0.4; done
+sleep 1
+ditto -x -k "$ZIP" "$TMP"
+NEW="$(find "$TMP" -maxdepth 3 -type d -name "Parcel.app" | head -n 1)"
+if [ -z "$NEW" ]; then exit 1; fi
+rm -rf "$APP"
+ditto "$NEW" "$APP"
+xattr -cr "$APP" || true
+open "$APP"
+`;
+  fs.writeFileSync(script, body, { mode: 0o755 });
+  const child = spawn('/bin/bash', [script], {
+    detached: true,
+    stdio: 'ignore',
+  });
+  child.unref();
+  app.quit();
 }
 
 function promptInstall(version) {
@@ -212,7 +265,11 @@ function resume() {
 function install() {
   if (snapshot.status !== 'downloaded') return snapshot;
   hooks.allowQuit();
-  setImmediate(() => autoUpdater.quitAndInstall(false, true));
+  setImmediate(() => {
+    // Unsigned mac builds cannot use Squirrel.Mac / ShipIt — it fails code signature checks.
+    if (process.platform === 'darwin') installMacUnsigned();
+    else autoUpdater.quitAndInstall(false, true);
+  });
   return snapshot;
 }
 

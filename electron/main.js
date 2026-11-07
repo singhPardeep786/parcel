@@ -22,7 +22,7 @@ function trace(message) {
   }
 }
 
-if (PLATFORM === 'win32') app.setAppUserModelId('com.grapesworldwide.parcel');
+if (PLATFORM === 'win32') app.setAppUserModelId('com.parcel.app');
 if (PLATFORM === 'linux') app.commandLine.appendSwitch('enable-transparent-visuals');
 app.commandLine.appendSwitch('disable-features', 'OverlayScrollbar');
 
