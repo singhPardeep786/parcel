@@ -60,76 +60,68 @@ function inRoundRect(nx, ny, rad) {
 function paintAppIcon(x, y, s) {
   const nx = (x + 0.5) / s;
   const ny = (y + 0.5) / s;
-  if (!inRoundRect(nx, ny, 0.22)) return [0, 0, 0, 0];
-  const shade = 1 - (ny - 0.2) * 0.18;
-  let r = 36 * shade;
-  let g = 27 * shade;
-  let b = 22 * shade;
+  const cx = 0.5;
+  const cy = 0.5;
+  const half = 0.34;
+  const radius = 0.07;
+  const dx = Math.abs(nx - cx);
+  const dy = Math.abs(ny - cy);
+  const inside =
+    dx <= half - radius && dy <= half
+      ? true
+      : dy <= half - radius && dx <= half
+        ? true
+        : (dx - (half - radius)) ** 2 + (dy - (half - radius)) ** 2 <= radius * radius;
+  if (!inside) return [0, 0, 0, 0];
 
-  const cx = 0.52;
-  const cy = 0.56;
-  const hw = 0.26;
-  const hh = 0.2;
-  const top = ny > cy - hh - 0.1 && ny < cy - hh + 0.02;
-  const inBody = Math.abs(nx - cx) < hw && ny > cy - hh && ny < cy + hh;
-  const inTop = Math.abs(nx - cx) < hw * 0.92 && Math.abs(ny - (cy - hh)) < 0.055 && Math.abs(nx - cx) / hw + (cy - hh - ny) * 2 < 1.15;
+  // Soft drop shadow fringe near the outer edge
+  const edge = Math.min(half - dx, half - dy);
+  let r = 154;
+  let g = 100;
+  let b = 52;
 
-  if (inBody) {
-    const edge = Math.min(hw - Math.abs(nx - cx), cy + hh - ny, ny - (cy - hh));
-    const dark = edge < 0.015 ? 0.72 : 1;
-    r = 214 * dark;
-    g = 168 * dark;
-    b = 106 * dark;
-    if (Math.abs(nx - cx) < 0.028) {
-      r = 232;
-      g = 206;
-      b = 150;
+  // Horizontal wood plank lines (top-down crate)
+  const plank = Math.floor((ny - (cy - half)) / (half * 2) * 8);
+  if (plank % 2 === 1) {
+    r = 110;
+    g = 63;
+    b = 28;
+  }
+
+  // Dark outline ring
+  if (edge < 0.028) {
+    r = 26;
+    g = 18;
+    b = 12;
+  }
+
+  // Cross straps (packing tape)
+  const strap = 0.045;
+  if (Math.abs(nx - cx) < strap || Math.abs(ny - cy) < strap) {
+    r = 217;
+    g = 178;
+    b = 92;
+    if (edge < 0.028) {
+      r = 26;
+      g = 18;
+      b = 12;
     }
   }
-  if (inTop && !inBody) {
-    r = 232;
-    g = 196;
-    b = 132;
-  }
-  if (inBody && ny > cy - 0.02 && ny < cy + 0.045 && Math.abs(nx - cx) < hw * 0.62) {
-    r = 255;
-    g = 248;
-    b = 236;
-  }
-  if (inBody && ny > cy + 0.055 && ny < cy + 0.09 && Math.abs(nx - cx) < 0.1) {
-    r = 224;
-    g = 122;
-    b = 47;
-  }
 
-  const hx = 0.3;
-  const hy = 0.34;
-  const dx = nx - hx;
-  const dy = ny - hy;
-  if (dx * dx + dy * dy < 0.012) {
-    r = 240;
-    g = 236;
-    b = 230;
-  }
-  if (dx * dx * 1.4 + (ny - 0.3) * (ny - 0.3) < 0.004 && ny < 0.31) {
-    r = 224;
-    g = 122;
-    b = 47;
-  }
-  return [Math.max(0, Math.min(255, r | 0)), Math.max(0, Math.min(255, g | 0)), Math.max(0, Math.min(255, b | 0)), 255];
+  return [r, g, b, 255];
 }
 
 function paintTray(x, y, s) {
   const nx = (x + 0.5) / s;
   const ny = (y + 0.5) / s;
   const cx = 0.5;
-  const cy = 0.58;
-  const hw = 0.28;
-  const hh = 0.22;
-  const inBody = Math.abs(nx - cx) < hw && ny > cy - hh && ny < cy + hh;
-  const inTop = Math.abs(nx - cx) < hw && ny > cy - hh - 0.12 && ny <= cy - hh && Math.abs(nx - cx) < hw * (1 - (cy - hh - ny) / 0.16);
-  if (inBody || inTop) return [0, 0, 0, 230];
-  return [0, 0, 0, 0];
+  const cy = 0.5;
+  const half = 0.32;
+  const inside = Math.abs(nx - cx) < half && Math.abs(ny - cy) < half;
+  if (!inside) return [0, 0, 0, 0];
+  const strap = 0.05;
+  if (Math.abs(nx - cx) < strap || Math.abs(ny - cy) < strap) return [0, 0, 0, 230];
+  return [0, 0, 0, 200];
 }
 
 module.exports = { encodePNG, paintAppIcon, paintTray };

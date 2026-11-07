@@ -46,12 +46,13 @@ jobs:
             return next.join('.');
           }
           function exists(version) {
+            // Tags are the bump signal. Publish already deletes+recreates the GitHub Release.
             try {
               execSync(`git rev-parse -q --verify refs/tags/v${version}`, { stdio: 'ignore' });
               return true;
             } catch {}
             try {
-              execSync(`gh release view v${version}`, { stdio: 'ignore' });
+              execSync(`git ls-remote --exit-code --tags origin refs/tags/v${version}`, { stdio: 'ignore' });
               return true;
             } catch {}
             return false;

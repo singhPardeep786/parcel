@@ -37,7 +37,13 @@ const card = document.getElementById("card");
 const frameEl = document.getElementById("frame");
 const figure = document.getElementById("figure");
 const shadow = document.getElementById("shadow");
+const crate = document.getElementById("crate");
 const errorEl = document.getElementById("error");
+
+function setCrateState(state) {
+  if (!crate) return;
+  crate.dataset.state = state;
+}
 
 let active = false;
 let phase = "idle";
@@ -130,6 +136,7 @@ function parkOffstage() {
   figure.style.width = "auto";
   figure.style.transform = "scale(0.62)";
   figure.style.transformOrigin = "left bottom";
+  setCrateState("intact");
 }
 
 window.parcelPrepare = parkOffstage;
@@ -155,6 +162,12 @@ function render() {
   figure.dataset.throw = "false";
   shadow.style.left = `${leftVw.toFixed(2)}vw`;
   shadow.style.width = "44px";
+
+  // Shatter near the end of the axe strike, same timing as the web overlay.
+  const striking = phase === "strike" && phaseT / DUR.strike > 0.72;
+  if (phase === "hold" || phase === "close" || striking) setCrateState("broken");
+  else if (phase === "leave" || phase === "done") setCrateState("gone");
+  else setCrateState("intact");
 }
 
 function openBanner() {
@@ -171,6 +184,7 @@ function shutBanner() {
 function finishExit() {
   active = false;
   hideFigure();
+  setCrateState("gone");
   card.classList.remove("show", "shut");
   card.setAttribute("aria-hidden", "true");
   const id = reminder && reminder.id;

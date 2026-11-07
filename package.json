@@ -4,7 +4,7 @@
   "version": "1.0.1",
   "private": true,
   "author": {
-    "name": "Grapes Worldwide"
+    "name": "Parcel"
   },
   "description": "Reminders for tasks and Google Calendar, with the Kratos frame animation. Installs on macOS, Windows, and Linux.",
   "homepage": "https://parcel-bj9e.vercel.app",
@@ -126,7 +126,7 @@
           ]
         }
       ],
-      "maintainer": "Grapes Worldwide"
+      "maintainer": "Parcel"
     },
     "deb": {
       "compression": "gz"

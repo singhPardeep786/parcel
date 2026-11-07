@@ -77,6 +77,15 @@ function fileName(file) {
   }
 }
 
+function isNewer(remote, local) {
+  const left = String(remote || '').split('.').map((n) => Number(n) || 0);
+  const right = String(local || '').split('.').map((n) => Number(n) || 0);
+  for (let i = 0; i < 3; i += 1) {
+    if ((left[i] || 0) !== (right[i] || 0)) return (left[i] || 0) > (right[i] || 0);
+  }
+  return false;
+}
+
 function fileSize(info) {
   const files = Array.isArray(info && info.files) ? info.files : [];
   if (!files.length) return Number(info && info.size) || 0;
@@ -116,10 +125,16 @@ function wire() {
   autoUpdater.on('checking-for-update', () => publish({ status: 'checking', error: '', percent: 0, transferred: 0, bytesPerSecond: 0 }));
   autoUpdater.on('update-available', (info) => {
     const version = info && info.version || '';
+    const current = app.getVersion();
+    if (!isNewer(version, current)) {
+      promptedFor = '';
+      publish({ status: 'none', available: '', version: current, error: '', percent: 0, transferred: 0, total: 0, bytesPerSecond: 0 });
+      return;
+    }
     publish({
       status: 'available',
       available: version,
-      version: app.getVersion(),
+      version: current,
       error: '',
       percent: 0,
       transferred: 0,
@@ -131,7 +146,7 @@ function wire() {
       hooks.openSettings();
     }
   });
-  autoUpdater.on('update-not-available', () => publish({ status: 'none', error: '', available: '', percent: 0, transferred: 0, bytesPerSecond: 0 }));
+  autoUpdater.on('update-not-available', () => publish({ status: 'none', error: '', available: '', percent: 0, transferred: 0, total: 0, bytesPerSecond: 0 }));
   autoUpdater.on('download-progress', (progress) => {
     if (snapshot.status === 'paused') return;
     const transferred = Number(progress && progress.transferred) || 0;
@@ -231,7 +246,7 @@ function check() {
     publish({ status: 'dev', error: '', version: snapshot.version });
     return snapshot;
   }
-  if (snapshot.status === 'available' || snapshot.status === 'downloading' || snapshot.status === 'paused' || snapshot.status === 'downloaded') {
+  if (snapshot.status === 'downloading' || snapshot.status === 'paused' || snapshot.status === 'downloaded') {
     return snapshot;
   }
   const url = feedUrl();
