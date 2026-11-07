@@ -163,9 +163,8 @@ function render() {
   shadow.style.left = `${leftVw.toFixed(2)}vw`;
   shadow.style.width = "44px";
 
-  // Shatter near the end of the axe strike, same timing as the web overlay.
-  const striking = phase === "strike" && phaseT / DUR.strike > 0.72;
-  if (phase === "hold" || phase === "close" || striking) setCrateState("broken");
+  // Break only on the final strike pose (hold), same as the website TaskBox.
+  if (phase === "hold" || phase === "close") setCrateState("broken");
   else if (phase === "leave" || phase === "done") setCrateState("gone");
   else setCrateState("intact");
 }
