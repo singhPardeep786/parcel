@@ -51,6 +51,23 @@ function feedUrl() {
   return String(baked.url || '').trim().replace(/\/+$/, '');
 }
 
+function ensureAppUpdateConfig() {
+  if (!app.isPackaged) return;
+  const target = path.join(process.resourcesPath, 'app-update.yml');
+  if (fs.existsSync(target)) return;
+  const body = [
+    'provider: generic',
+    `url: ${feedUrl()}/`,
+    'updaterCacheDirName: parcel-updater',
+    '',
+  ].join('\n');
+  try {
+    fs.writeFileSync(target, body);
+  } catch {
+    // Resources may be locked; setFeedURL still carries the feed.
+  }
+}
+
 function fileName(file) {
   const raw = String((file && (file.url || file.path || file.name)) || '');
   try {
@@ -93,6 +110,7 @@ function publish(patch) {
 function wire() {
   if (wired) return;
   wired = true;
+  ensureAppUpdateConfig();
   autoUpdater.autoDownload = false;
   autoUpdater.autoInstallOnAppQuit = false;
   autoUpdater.on('checking-for-update', () => publish({ status: 'checking', error: '', percent: 0, transferred: 0, bytesPerSecond: 0 }));
@@ -222,6 +240,7 @@ function check() {
     return snapshot;
   }
   try {
+    ensureAppUpdateConfig();
     autoUpdater.setFeedURL({ provider: 'generic', url });
     publish({ status: 'checking', error: '' });
     autoUpdater.checkForUpdates().catch((error) => {

@@ -40,14 +40,6 @@ jobs:
           function parts(version) {
             return String(version).split('.').map((n) => Number(n) || 0);
           }
-          function cmp(a, b) {
-            const left = parts(a);
-            const right = parts(b);
-            for (let i = 0; i < 3; i += 1) {
-              if (left[i] !== right[i]) return left[i] - right[i];
-            }
-            return 0;
-          }
           function bump(version) {
             const next = parts(version);
             next[2] += 1;
@@ -66,16 +58,9 @@ jobs:
           }
 
           let version = pkg.version;
-          const tags = execSync('git tag -l "v*.*.*"', { encoding: 'utf8' })
-            .split('\n')
-            .map((tag) => tag.replace(/^v/, '').trim())
-            .filter(Boolean);
-          for (const tag of tags) {
-            if (cmp(tag, version) > 0) version = tag;
-          }
-          do {
+          while (exists(version)) {
             version = bump(version);
-          } while (exists(version));
+          }
 
           pkg.version = version;
           fs.writeFileSync('package.json', `${JSON.stringify(pkg, null, 2)}\n`);

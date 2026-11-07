@@ -1,7 +1,7 @@
 {
   "name": "parcel-reminder",
   "productName": "Parcel",
-  "version": "1.0.5",
+  "version": "1.0.1",
   "private": true,
   "author": {
     "name": "Grapes Worldwide"
@@ -47,6 +47,12 @@
     "directories": {
       "output": "dist"
     },
+    "extraResources": [
+      {
+        "from": "electron/app-update.yml",
+        "to": "app-update.yml"
+      }
+    ],
     "files": [
       "electron/**/*",
       "src/**/*",
