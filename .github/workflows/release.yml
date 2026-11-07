@@ -12,9 +12,80 @@ permissions:
   contents: write
 
 jobs:
-  build:
+  version:
     if: ${{ github.actor != 'github-actions[bot]' }}
+    name: Next version
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.next.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Pick the next free version
+        id: next
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          git fetch --tags --force
+          node <<'NODE'
+          const { execSync } = require('child_process');
+          const fs = require('fs');
+          const pkg = require('./package.json');
+
+          function parts(version) {
+            return String(version).split('.').map((n) => Number(n) || 0);
+          }
+          function cmp(a, b) {
+            const left = parts(a);
+            const right = parts(b);
+            for (let i = 0; i < 3; i += 1) {
+              if (left[i] !== right[i]) return left[i] - right[i];
+            }
+            return 0;
+          }
+          function bump(version) {
+            const next = parts(version);
+            next[2] += 1;
+            return next.join('.');
+          }
+          function exists(version) {
+            try {
+              execSync(`git rev-parse -q --verify refs/tags/v${version}`, { stdio: 'ignore' });
+              return true;
+            } catch {}
+            try {
+              execSync(`gh release view v${version}`, { stdio: 'ignore' });
+              return true;
+            } catch {}
+            return false;
+          }
+
+          let version = pkg.version;
+          const tags = execSync('git tag -l "v*.*.*"', { encoding: 'utf8' })
+            .split('\n')
+            .map((tag) => tag.replace(/^v/, '').trim())
+            .filter(Boolean);
+          for (const tag of tags) {
+            if (cmp(tag, version) > 0) version = tag;
+          }
+          do {
+            version = bump(version);
+          } while (exists(version));
+
+          pkg.version = version;
+          fs.writeFileSync('package.json', `${JSON.stringify(pkg, null, 2)}\n`);
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, `version=${version}\n`);
+          console.log(`next version ${version}`);
+          NODE
+
+  build:
     name: Build ${{ matrix.os }}
+    needs: version
     runs-on: ${{ matrix.os }}
     timeout-minutes: 90
     strategy:
@@ -34,9 +105,9 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - name: Next version
+      - name: Set release version
         shell: bash
-        run: npm version patch --no-git-tag-version
+        run: npm version "${{ needs.version.outputs.version }}" --no-git-tag-version --allow-same-version
       - name: Allow an unsigned Windows build when no certificate is stored
         if: matrix.script == 'dist:win'
         shell: bash
@@ -67,7 +138,7 @@ jobs:
 
   publish:
     name: Publish update
-    needs: build
+    needs: [version, build]
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -77,8 +148,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Next version
-        run: npm version patch --no-git-tag-version
+      - name: Set release version
+        run: npm version "${{ needs.version.outputs.version }}" --no-git-tag-version --allow-same-version
       - uses: actions/download-artifact@v4
         with:
           pattern: parcel-*
@@ -90,14 +161,19 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          version="$(node -p "require('./package.json').version")"
+          set -euo pipefail
+          version="${{ needs.version.outputs.version }}"
+          if gh release view "v${version}" >/dev/null 2>&1; then
+            gh release delete "v${version}" --yes --cleanup-tag
+          fi
           gh release create "v${version}" dist/updates/* \
             --title "Parcel ${version}" \
             --notes "Parcel ${version}" \
             --target "${{ github.sha }}"
       - name: Publish the feed
         run: |
-          version="$(node -p "require('./package.json').version")"
+          set -euo pipefail
+          version="${{ needs.version.outputs.version }}"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add package.json package-lock.json public/latest-mac.yml public/latest.yml public/latest-linux.yml public/latest-linux-arm64.yml
