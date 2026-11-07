@@ -191,7 +191,7 @@ function promptInstall(version) {
   promptedFor = version;
   const win = hooks.settingsWindow();
   const options = {
-    type: 'info',
+    type: 'info', 
     buttons: [t(lang(), 'installUpdate'), t(lang(), 'later')],
     defaultId: 0,
     cancelId: 1,
