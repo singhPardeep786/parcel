@@ -1,9 +1,9 @@
 version: 1.0.1
 files:
   - url: https://github.com/singhPardeep786/parcel/releases/download/v1.0.1/Parcel-1.0.1-x86_64.AppImage
-    sha512: yfo1XIbE9QOrxrm7KF3LbLuAtjlf2H0q/Tg9DYtKIAk37h578agogPw9kB+TB982rp3uCzGtSNY5pxPxABAkOA==
-    size: 212256215
-    blockMapSize: 222699
+    sha512: zZBI35G7uuRRRgDAmxnekN6mtoh9L/SrrPnHCSswMeenprc3GVBlpS9T3AtxmJDyLJVWOvo7cPvYGD2wFEnTjw==
+    size: 212260000
+    blockMapSize: 222388
 path: Parcel-1.0.1-x86_64.AppImage
-sha512: yfo1XIbE9QOrxrm7KF3LbLuAtjlf2H0q/Tg9DYtKIAk37h578agogPw9kB+TB982rp3uCzGtSNY5pxPxABAkOA==
-releaseDate: '2026-11-07T08:54:33.266Z'
+sha512: zZBI35G7uuRRRgDAmxnekN6mtoh9L/SrrPnHCSswMeenprc3GVBlpS9T3AtxmJDyLJVWOvo7cPvYGD2wFEnTjw==
+releaseDate: '2026-11-07T09:39:09.160Z'

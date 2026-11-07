@@ -1,14 +1,14 @@
 version: 1.0.1
 files:
   - url: https://github.com/singhPardeep786/parcel/releases/download/v1.0.1/Parcel-Setup-1.0.1.exe
-    sha512: oEFP0fFKSS5jD6vBDCl5v31kDLL2Q42skIAvSXibokPJfztiNLz9aRgNOJF+hdD3Cpx9Mo5KRz4n7GV4wStXiw==
-    size: 323687632
+    sha512: 6hou2pOqgt3YX+K9e2ydQVUA4jfZwB7niCQKzO/xOLuyvfjwUKdQnMkOi1GWSFEecgmJolXKkh76Cz4FBS+dVw==
+    size: 323689802
   - url: https://github.com/singhPardeep786/parcel/releases/download/v1.0.1/Parcel-Setup-1.0.1-x64.exe
-    sha512: 8xMIU1LB8e4CZMBNK1KNnZgGqyd6pno/3IAo6j5xx+V/KrW6p+zgwTtrpVfz3C6C0qgcsDguLnVzixFaWAn4wA==
-    size: 159008455
+    sha512: hhQcEe3XG9SKlB4xEoJLQlORg5HOv7b0RyULWLtLSdTc4SmLWyh/nkGv43qQDF9kEiv1W3dZlcVtIphvntqvxg==
+    size: 159009377
   - url: https://github.com/singhPardeep786/parcel/releases/download/v1.0.1/Parcel-Setup-1.0.1-arm64.exe
-    sha512: wMzGVcSMw8jiOifsWliRqwanasEjPPxOamN905WeTVZpYqVC1WcTSmEOJix2xFE27z6N17klSKDoLa0bVzhO4g==
-    size: 165228735
+    sha512: GZiP1568z1N1fLOLJHfzJNOlWYOYHUL6N34w8ibS1EXUpf8pL86wZcnSiF+pSTbsvmDCku1xTS4WyS7Ah3lX5w==
+    size: 165229543
 path: Parcel-Setup-1.0.1.exe
-sha512: oEFP0fFKSS5jD6vBDCl5v31kDLL2Q42skIAvSXibokPJfztiNLz9aRgNOJF+hdD3Cpx9Mo5KRz4n7GV4wStXiw==
-releaseDate: '2026-11-07T08:57:12.211Z'
+sha512: 6hou2pOqgt3YX+K9e2ydQVUA4jfZwB7niCQKzO/xOLuyvfjwUKdQnMkOi1GWSFEecgmJolXKkh76Cz4FBS+dVw==
+releaseDate: '2026-11-07T09:41:06.731Z'
